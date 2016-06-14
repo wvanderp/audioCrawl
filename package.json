@@ -1,0 +1,11 @@
+{
+  "name": "audiocrawl",
+  "version": "0.1.0",
+  "description": "a http crawler for finding songs taged in musicbrainz",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
