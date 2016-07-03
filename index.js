@@ -3,8 +3,9 @@ var request = require('sync-request');
 var linkscrape = require("linkscrape");
 var fs = require("fs");
 const execSync = require('child_process').execSync;
+var md5 = require('md5');
 
-var startUrl = "http://hcmaslov.d-real.sci-nnov.ru/public/mp3/Beatles/";
+var startUrl = "http://sv.rapid-dl.com/music%20khareji/";
 
 
 // ==========================================================
@@ -13,12 +14,13 @@ var apiKey = "RPP8Za7Vnd";
 var apiBaseUrl = "http://api.acoustid.org/v2/lookup";
 var apiBaseParam = "?client="+apiKey+"&format=json&meta=recordingids";
 
-var ownApiUrl =  "cwms.cc/audioCrawl/api/add.php";
+//var ownApiUrl =  "http://cwms.cc/audioCrawl/api/add.php";
+var ownApiUrl =  "http://localhost/audioCrawl/api/add.php";
 
 var queue = [];
 var done = [];
 
-var ignoredExt = ["jpeg","jpg", "gif", "pdf", "png", "mp4", "avi", "flv", "txt", "doc", "docx", "iso", "zip", "exe", "rtf", "cab", "bmp"]
+var ignoredExt = ["jpeg","jpg", "gif", "pdf", "png", "mp4", "avi", "flv", "txt", "doc", "docx", "iso", "zip", "exe", "rtf", "cab", "bmp"];
 
 start();
 
@@ -67,7 +69,7 @@ function parseUrl(url) {
             var ext = ignoredExt[i];
             var extRegex =  new RegExp("/.+?\."+ext+"$");
             if(extRegex.test(url)){
-                console.log("it is an unwanted file extention")
+                console.log("it is an unwanted file extention");
                 return
             }
         }
@@ -104,13 +106,12 @@ function getSongs(url) {
     duration = duration.replace("DURATION=", "");
     fingerprint = fingerprint.replace("FINGERPRINT=", "");
 
-    // console.log(duration);
-    // console.log(fingerprint);
+    var hash = md5(song);
 
-    callApi(duration, fingerprint)
+    callApi(duration, fingerprint, hash, url);
 }
 
-function callApi(duration, fingerprint) {
+function callApi(duration, fingerprint, hash, url) {
     var fullUrl = apiBaseUrl+apiBaseParam+"&duration="+duration+"&fingerprint="+fingerprint;
 
     var res = request('GET', fullUrl);
@@ -120,10 +121,22 @@ function callApi(duration, fingerprint) {
     // console.log(resp.toString('utf-8'));
     var recordId = json.results[0].recordings;
 
-    console.log(recordId)
+    //console.log(recordId);
 
     for(var i in recordId){
-        var id = recordId[i].id
+        var id = recordId[i].id;
+
+        saveToDb(id, hash, url);
 
     }
+}
+
+function saveToDb(recordId, hash, url){
+    //console.log(recordId, hash, url);
+    var apiUrl = ownApiUrl+"?url="+url+"&mbid="+recordId+"&hash="+hash;
+
+    //console.log(apiUrl);
+
+    var res = request('GET', apiUrl);
+    console.log(res.getBody('utf-8'))
 }
