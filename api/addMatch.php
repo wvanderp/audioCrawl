@@ -30,11 +30,11 @@ $hash = mysqli_real_escape_string($link,$hash);
 
 
 $uniqueQuery = "SELECT * FROM `matches` WHERE `mbid` = '".$mbid."' AND `url` = '".$url."' AND `hash` = '".$hash."'";
-    $uniqueResult = mysqli_query($link, $uniqueQuery) or die(mysqli_error($link));
+$uniqueResult = mysqli_query($link, $uniqueQuery) or die(mysqli_error($link));
 
-    if(mysqli_num_rows($uniqueResult) == 0) {
-        $query = "INSERT INTO `matches` (`id`, `mbid`, `url`, `hash`) VALUES (NULL, '".$mbid."', '".$url."', '".$hash."');";
-        $result = mysqli_query($link, $query) or die(mysqli_error($link));
-        die("added");
-    }else
-        die("duplicate");
+if(mysqli_num_rows($uniqueResult) == 0) {
+    $query = "INSERT INTO `matches` (`id`, `mbid`, `url`, `hash`) VALUES (NULL, '".$mbid."', '".$url."', '".$hash."');";
+    $result = mysqli_query($link, $query) or die(mysqli_error($link));
+    die("added");
+}else
+    die("duplicate");

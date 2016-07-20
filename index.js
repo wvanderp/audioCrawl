@@ -4,21 +4,17 @@ var linkscrape = require("linkscrape");
 var fs = require("fs");
 const execSync = require('child_process').execSync;
 var md5 = require('md5');
-
-var startUrl = "http://sv.rapid-dl.com/music%20khareji/";
-
-
 // ==========================================================
 
 var apiKey = "RPP8Za7Vnd";
 var apiBaseUrl = "http://api.acoustid.org/v2/lookup";
 var apiBaseParam = "?client="+apiKey+"&format=json&meta=recordingids";
 
-//var ownApiUrl =  "http://cwms.cc/audioCrawl/api/add.php";
-var ownApiUrl =  "http://localhost/audioCrawl/api/add.php";
+//var ownDomain = "http://cwms.cc/audioCrawl/api/";
+var ownDomain = "http://localhost/audioCrawl/api/";
 
-var queue = [];
-var done = [];
+//var ownApiUrl = ownDomain + "add.php";
+var ownApiUrl = ownDomain + "add.php";
 
 var ignoredExt = ["jpeg","jpg", "gif", "pdf", "png", "mp4", "avi", "flv", "txt", "doc", "docx", "iso", "zip", "exe", "rtf", "cab", "bmp"];
 
@@ -26,12 +22,9 @@ start();
 
 function start() {
     console.log("start crawling");
-    queue.push(startUrl);
-    while(queue.length != 0){
-        console.log("items in queue: "+queue.length);
-        console.log("items in done: "+done.length);
+    while(true){
+        var taskurl =
         crawl(queue[0]);
-        queue.splice(0,1)
     }
 }
 
@@ -78,14 +71,13 @@ function parseUrl(url) {
 }
 
 function addUrlToQueue(url) {
-    if(done.indexOf(url) == -1){
-        if(queue.indexOf(url) == -1){
-            // console.log("adding url to queue");
-            queue.push(url);
-        }
-    }else{
-        // console.log("that url is already done");
-    }
+    var urlApi = ownDomain + "url.php";
+    var obj = JSON.stringify([url]);
+    var requestUrl = urlApi + "?urls=" + obj;
+
+    console.log(requestUrl);
+
+    var res = request('GET', requestUrl);
 }
 
 function getSongs(url) {
