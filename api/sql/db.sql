@@ -19,7 +19,7 @@ SET time_zone = "+00:00";
 --
 -- Database: `audiocrawl`
 --
-
+use `audiocrawl`;
 -- --------------------------------------------------------
 
 --
@@ -50,7 +50,8 @@ CREATE TABLE `nomatch` (
 --
 
 CREATE TABLE `urls` (
-  `url` varchar(2000) NOT NULL
+  `url` varchar(2000) NOT NULL,
+  `done`TINYINT(1) DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --

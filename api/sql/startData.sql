@@ -23,8 +23,8 @@ TRUNCATE TABLE `urls`;
 -- Dumping data for table `urls`
 --
 
-INSERT INTO `urls` (`url`) VALUES
-('http://hcmaslov.d-real.sci-nnov.ru/public/mp3/Eagles/'),
-('http://www.klompenboer.nl/MP3/'),
-('http://www.recordedlight.com/music/The%20Cars/Complete%20Greatest%20Hits/'),
-('http://www.tomatenland.nl/content/mp3/');
+INSERT INTO `urls` (`url`, `done`) VALUES
+('http://hcmaslov.d-real.sci-nnov.ru/public/mp3/Eagles/', 0),
+('http://www.klompenboer.nl/MP3/', 0),
+('http://www.recordedlight.com/music/The%20Cars/Complete%20Greatest%20Hits/', 0),
+('http://www.tomatenland.nl/content/mp3/', 0);
