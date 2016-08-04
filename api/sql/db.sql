@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 4.5.0.2
+-- version 4.5.1
 -- http://www.phpmyadmin.net
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 02, 2016 at 11:26 PM
--- Server version: 10.0.17-MariaDB
--- PHP Version: 5.6.14
+-- Generation Time: Aug 04, 2016 at 09:06 PM
+-- Server version: 10.1.13-MariaDB
+-- PHP Version: 5.6.23
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
@@ -19,7 +19,7 @@ SET time_zone = "+00:00";
 --
 -- Database: `audiocrawl`
 --
-use `audiocrawl`;
+
 -- --------------------------------------------------------
 
 --
@@ -51,7 +51,7 @@ CREATE TABLE `nomatch` (
 
 CREATE TABLE `urls` (
   `url` varchar(2000) NOT NULL,
-  `done`TINYINT(1) DEFAULT 0
+  `done` tinyint(1) DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
@@ -62,19 +62,19 @@ CREATE TABLE `urls` (
 -- Indexes for table `matches`
 --
 ALTER TABLE `matches`
-ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `nomatch`
 --
 ALTER TABLE `nomatch`
-ADD PRIMARY KEY (`url`);
+  ADD PRIMARY KEY (`url`);
 
 --
 -- Indexes for table `urls`
 --
 ALTER TABLE `urls`
-ADD PRIMARY KEY (`url`(200));
+  ADD PRIMARY KEY (`url`(200));
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -84,7 +84,7 @@ ADD PRIMARY KEY (`url`(200));
 -- AUTO_INCREMENT for table `matches`
 --
 ALTER TABLE `matches`
-MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=0;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

@@ -89,30 +89,35 @@ function addUrl(url){
         var extRegex = new RegExp("/.+?\." + ext + "$");
         if (extRegex.test(url)) {
             isGood = true;
-            console.log("found good extention: "+ ext);
+            //console.log("found good extention: "+ ext);
         }
     }
 
     if (path == null){
         isGood = true;
-        console.log("is root: "+ url);
+        //console.log("is root: "+ url);
     }
 
     if(!isGood && path.substr(-1) === "/"){
         isGood = true;
-        console.log("ended on /");
+        //console.log("ended on /");
     }
 
     if(!isGood && path.indexOf(".") == -1){
         isGood = true;
-        console.log("no points in the path");
+        //console.log("no points in the path");
+    }
+
+    if(path !== null && path.indexOf("mailto:") == -1){
+        isGood = false;
+        //console.log("mail to found");
     }
 
     if(isGood) {
         console.log("adding url to db");
         addUrlApiCall("{\"urls\":[\"" + url + "\"]}");
     }else{
-        console.log("ended on : " + path.substr(-4))
+        //console.log("ended on : " + path.substr(-4))
     }
 }
 
@@ -189,7 +194,6 @@ function addUrlApiCall(urls){
     if (res.statusCode != 200) {
     	throw "error received from own server: "+ res.statusCode;
     }
-
     //console.log(res.getBody().toString("utf-8"));
 }
 

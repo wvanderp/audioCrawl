@@ -20,7 +20,9 @@ $unwanted = [
  "fsf.org", "meetup.com", "gnu.org", "unicorncloud.org",
  "yzu.edu.tw", "/gnu/", "/linuxmint/", "ubuntu.com"
  "/releases/", "oreilly.com", "w3.org", "creativecommons.org",
- "businessinsider.com", "mirror.", "vimeo.com"];
+ "businessinsider.com", "mirror.", "vimeo.com", "open-source-box.org",
+ "catchpoint.com", "speakerdeck.com", "ftp.hawo.stw.uni-erlangen.de",
+ "goo.gl", "gnupress.org"];
 
 if (!isset($_GET["urls"]) || $_GET["urls"] == "") {
     die("no urls found");
