@@ -13,7 +13,7 @@ SET time_zone = "+00:00";
 --
 -- Database: `audiocrawl`
 --
-
+USE `audiocrawl`;
 --
 -- Truncate table before insert `urls`
 --

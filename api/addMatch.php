@@ -20,10 +20,10 @@
 //    echo $url."<br>";
 //    echo $mbid."<br>";
 //   echo $hash."<br>";
+
 $link = mysqli_connect("localhost", "root", "", "audiocrawl") or die(mysqli_error($link));
 
-//escaping that ?
-
+//escaping that shit
 $url = mysqli_real_escape_string($link,$url);
 $mbid = mysqli_real_escape_string($link,$mbid);
 $hash = mysqli_real_escape_string($link,$hash);
@@ -35,6 +35,10 @@ $uniqueResult = mysqli_query($link, $uniqueQuery) or die(mysqli_error($link));
 if(mysqli_num_rows($uniqueResult) == 0) {
     $query = "INSERT INTO `matches` (`id`, `mbid`, `url`, `hash`) VALUES (NULL, '".$mbid."', '".$url."', '".$hash."');";
     $result = mysqli_query($link, $query) or die(mysqli_error($link));
+    mysqli_close($link);
     die("added");
-}else
+}else {
+    mysqli_close($link);
     die("duplicate");
+}
+

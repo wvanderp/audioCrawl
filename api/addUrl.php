@@ -17,18 +17,11 @@ if (!isset($_GET["urls"]) || $_GET["urls"] == "") {
     die("no urls found");
 }
 
+
 $urls = json_decode($_GET["urls"], true)["urls"];
 $link = mysqli_connect("localhost", "root", "", "audiocrawl") or die(mysqli_error($link));
 
 var_dump($urls);
-
-die();
-//$urls = ["https://stackoverflow.com/questions/369602/delete-an-element-from-an-array",
-//    "https://en.wikipedia.org/wiki/Sledgehammer_(Rihanna_song)",
-//    "http://cwms.cc/youtube-rss/",
-//    "http://cwms.cc/",
-//    "http://cwms.cc/",
-//    "https://github.com/wvanderp/tpb-scrape/tree/master/api"];
 
 foreach ($urls as $url) {
     if(strlen($url) > 2000){
@@ -53,5 +46,7 @@ foreach ($urls as $url) {
 
 $query = substr($query,0, strlen($query)-2);
 $query .= ";";
-
+echo($query);
 mysqli_query($link, $query) or die(mysqli_error($link));
+
+mysqli_close($link);
