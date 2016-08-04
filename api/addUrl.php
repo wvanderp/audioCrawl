@@ -16,7 +16,11 @@ $unwanted = [
 "wikimedia.org", "mediawiki.org", "teamliquid.net",
 "blizzard.com", "gmane.org", "archive.org",
  "wikimediafoundation.org", "wikidata.org", "youtu.be", 
- "mailto:", "freenode.net", "translatewiki.net"];
+ "mailto:", "freenode.net", "translatewiki.net",
+ "fsf.org", "meetup.com", "gnu.org", "unicorncloud.org",
+ "yzu.edu.tw", "/gnu/", "/linuxmint/", "ubuntu.com"
+ "/releases/", "oreilly.com", "w3.org", "creativecommons.org",
+ "businessinsider.com", "mirror.", "vimeo.com"];
 
 if (!isset($_GET["urls"]) || $_GET["urls"] == "") {
     die("no urls found");

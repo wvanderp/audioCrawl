@@ -5,6 +5,7 @@ var linkscrape = require("linkscrape");
 var fs = require("fs");
 const execSync = require('child_process').execSync;
 var md5 = require('md5');
+const urlParse = require('url');
 
 // --------------------------------------------------------------------------
 
@@ -22,8 +23,8 @@ var markDoneApi = ownDomain + "markDone.php";
 var noMatchApi = ownDomain + "noMatch.php";
 
 
-
-var ignoredExt = ["jpeg","jpg", "gif", "pdf", "png", "mp4", "uts", "atom", "wmv", "avi", "wma", "flac", "db", "tar", "gz", "bz2", "ini", "flv", "txt", "doc", "docx", "iso", "zip", "exe", "rtf", "cab", "bmp"];
+var includeExt = ["mp3", "htm", "html", "php", "asp", "jsp", "mhtml", "shtml", "aspx", "ashx", "cgi", "cshtml", "jspx", "phtml", "xhtml", "html5"];
+//var ignoredExt = ["jpeg", "css", "deb", "sig", "mov", "rss", "vcf", "gpg", "JPG", "m4a", "rpm", "xml", "jpg", "gif", "pdf", "png", "mp4", "uts", "atom", "wmv", "avi", "wma", "flac", "db", "tar", "gz", "bz2", "ini", "flv", "txt", "doc", "docx", "iso", "zip", "exe", "rtf", "cab", "bmp"];
 
 start();
 // --------------------------------------------------------------------------
@@ -77,16 +78,42 @@ function parseUrl(url) {
 
 function addUrl(url){
     // console.log("it is a normal url");
-    for(var i in ignoredExt){
-        var ext = ignoredExt[i];
-        var extRegex =  new RegExp("/.+?\."+ext+"$");
-        if(extRegex.test(url)){
-            console.log("it is an unwanted file extention: "+ext);
-            return;
+    var urlObj = urlParse.parse(url);
+
+    var path = urlObj.pathname;
+
+    var isGood = false;
+
+    for(var i in includeExt) {
+        var ext = includeExt[i];
+        var extRegex = new RegExp("/.+?\." + ext + "$");
+        if (extRegex.test(url)) {
+            isGood = true;
+            console.log("found good extention: "+ ext);
         }
     }
-    console.log("adding url to db");
-    addUrlApiCall("{\"urls\":[\""+url+"\"]}");
+
+    if (path == null){
+        isGood = true;
+        console.log("is root: "+ url);
+    }
+
+    if(!isGood && path.substr(-1) === "/"){
+        isGood = true;
+        console.log("ended on /");
+    }
+
+    if(!isGood && path.indexOf(".") == -1){
+        isGood = true;
+        console.log("no points in the path");
+    }
+
+    if(isGood) {
+        console.log("adding url to db");
+        addUrlApiCall("{\"urls\":[\"" + url + "\"]}");
+    }else{
+        console.log("ended on : " + path.substr(-4))
+    }
 }
 
 function getSongs(url) {
@@ -211,6 +238,10 @@ function acoustidApiCall(duration, fingerprint){
 
     if (json.results.length == 0){
         return [];
+    }
+
+    if (json.results.length == 1){
+        return json.results;
     }
 
     return json.results[0].recordings;
