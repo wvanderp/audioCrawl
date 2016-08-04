@@ -11,7 +11,12 @@ $unwanted = [
 "Yandex.ru", "Reddit.com", "Pinterest.com", "Netflix.com",
 "Onclickads.net", "Wordpress.com", "Imgur.com",
 "Stackoverflow.com", "Apple.com", "Aliexpress.com",
-"Imdb.com", "github.com", "kat.cr"];
+"Imdb.com", "github.com", "kat.cr", "wordpress.org", 
+"zenfolio.com", "walmart.com", "mattel.com", 
+"wikimedia.org", "mediawiki.org", "teamliquid.net",
+"blizzard.com", "gmane.org", "archive.org",
+ "wikimediafoundation.org", "wikidata.org", "youtu.be", 
+ "mailto:", "freenode.net", "translatewiki.net"];
 
 if (!isset($_GET["urls"]) || $_GET["urls"] == "") {
     die("no urls found");
@@ -21,9 +26,11 @@ if (!isset($_GET["urls"]) || $_GET["urls"] == "") {
 $urls = json_decode($_GET["urls"], true)["urls"];
 $link = mysqli_connect("localhost", "root", "", "audiocrawl") or die(mysqli_error($link));
 
-var_dump($urls);
+// var_dump($urls);
 
 foreach ($urls as $url) {
+	$url = mysqli_real_escape_string($link,$url);
+
     if(strlen($url) > 2000){
         $urls = array_diff($urls, [$url]);
         break;
@@ -41,12 +48,12 @@ foreach ($urls as $url) {
 $query = "INSERT IGNORE INTO urls VALUES ";
 
 foreach ($urls as $url) {
-    $query .= "('".$url."'), ";
+    $query .= "('".$url."', 0), ";
 }
 
 $query = substr($query,0, strlen($query)-2);
 $query .= ";";
-echo($query);
+// echo($query);
 mysqli_query($link, $query) or die(mysqli_error($link));
 
 mysqli_close($link);

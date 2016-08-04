@@ -7,7 +7,9 @@ $link = mysqli_connect("localhost", "root", "", "audiocrawl") or die(mysqli_erro
 
 $url = $_GET["url"];
 
-$query = "DELETE FROM `urls` WHERE `urls`.`url` = ".$url;
+$url = mysqli_real_escape_string($link,$url);
+
+$query = "UPDATE `urls` SET `done` = '1' WHERE `urls`.`url` = '".$url."'";
 mysqli_query($link, $query) or die(mysqli_error($link));
 
 mysqli_close($link);

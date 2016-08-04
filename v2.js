@@ -23,7 +23,7 @@ var noMatchApi = ownDomain + "noMatch.php";
 
 
 
-var ignoredExt = ["jpeg","jpg", "gif", "pdf", "png", "mp4", "avi", "flv", "txt", "doc", "docx", "iso", "zip", "exe", "rtf", "cab", "bmp"];
+var ignoredExt = ["jpeg","jpg", "gif", "pdf", "png", "mp4", "uts", "atom", "wmv", "avi", "wma", "flac", "db", "tar", "gz", "bz2", "ini", "flv", "txt", "doc", "docx", "iso", "zip", "exe", "rtf", "cab", "bmp"];
 
 start();
 // --------------------------------------------------------------------------
@@ -32,16 +32,7 @@ function start(){
     while(true) {
         var url = getTaskApiCall();
 
-        try {
-            var page = getPage(url);
-        } catch (e) {
-            console.log(e);
-            markDoneApiCall(url);
-            return;
-        }
-        //console.log(page);
-
-        parseUrl(url, page);
+        parseUrl(url);
         markDoneApiCall(url);
     }
 }
@@ -53,30 +44,36 @@ function getPage(url){
         throw "error received while fetching page: "+ res.statusCode;
     }
 
-    return res.getBody();
+    return res.getBody().toString("utf-8");
 }
 
-function parsePage(url, page){
-    linkscrape(url, page, function(links, $) {
-        for(var i in links){
-            var link = links[i].link;
-            if (link === null){
-                continue;
-            }
-            parseUrl(link);
-        }
-    });
-}
-
-function parseUrl(url, page) {
+function parseUrl(url) {
     var mp3Regex = /.+?\.mp3$/gim;
     if(mp3Regex.test(url)){
         // console.log("it is a mp3");
-        getSongs(url);
+        getSongs(url, page);
     }else{
-        parsePage(url,page);
+
+        try {
+            var page = getPage(url);
+        } catch (e) {
+            console.log(e);
+            markDoneApiCall(url);
+            return;
+        }
+
+        linkscrape(url, page, function(links, $) {
+            for(var i in links){
+                var link = links[i].link;
+                if (link === null){
+                    continue;
+                }
+                addUrl(link);
+            }
+        });
     }
 }
+
 
 function addUrl(url){
     // console.log("it is a normal url");
@@ -93,20 +90,27 @@ function addUrl(url){
 }
 
 function getSongs(url) {
-    console.log("downloading mp3 from: "+url);
+    console.log("downloading: "+url);
     var res = request('GET', url);
-
     if (res.statusCode != 200) {
-        console.log("error received while fetching mp3: "+ res.statusCode);
+        console.log("error received while fetching mp3: " + res.statusCode);
         return;
     }
 
     var song = res.getBody();
-    // console.log(song);
+
+
     fs.writeFileSync("test.mp3", song);
 
     console.log("calculating fingerprint");
-    var result = execSync("fpcalc test.mp3");
+    try {
+        var result = execSync("fpcalc test.mp3");
+    }catch(e) {
+        //console.log(e);
+        markDoneApiCall(url);
+        return;
+    }
+
     var string = result.toString('utf-8');
     var parts = string.split("\n");
 
@@ -123,10 +127,14 @@ function getSongs(url) {
 
 function findSong(duration, fingerprint, hash, url) {
     var recordIds = acoustidApiCall(duration, fingerprint);
+
     if (recordIds.length === 0){
+        console.log("no matches found");
         noMatchApiCall(url);
         return;
     }
+
+    console.log("adding "+ recordIds.length +" matches to the db")
 
     for(var i in recordIds){
         var mbid = recordIds[i].id;
@@ -199,7 +207,11 @@ function acoustidApiCall(duration, fingerprint){
     var resp =  res.getBody();
     var json = JSON.parse(resp.toString('utf-8'));
 
-    // console.log(resp.toString('utf-8'));
-    //console.log(recordId);
+    console.log(json);
+
+    if (json.results.length == 0){
+        return [];
+    }
+
     return json.results[0].recordings;
 }

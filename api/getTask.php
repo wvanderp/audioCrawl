@@ -5,7 +5,7 @@ ini_set('display_errors', true);
 
 $link = mysqli_connect("localhost", "root", "", "audiocrawl") or die(mysqli_error($link));
 
-$query = "SELECT * FROM `urls` ORDER BY RAND() limit 1;";
+$query = "SELECT * FROM `urls` WHERE `done` = 0 ORDER BY RAND() limit 1;";
 
 $resp = mysqli_query($link, $query) or die(mysqli_error($link));
 $arr = mysqli_fetch_assoc($resp);
