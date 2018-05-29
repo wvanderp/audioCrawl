@@ -4,19 +4,23 @@
   "description": "a http crawler for finding songs taged in musicbrainz",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint ./"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "fpcalc": "~1.2.1",
+    "fpcalc": "^1.2.1",
     "linkscrape": "^1.0.0",
-    "md5": "^2.1.0",
-    "sync-request": "~3.0.1",
-    "underscore": "~1.8.3",
+    "md5": "^2.2.1",
+    "sync-request": "~6.0.0",
+    "ramda": "^0.25.0",
     "url": "^0.11.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "eslint": "^4.19.1",
+    "babel-eslint": "^8.2.3"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://wvanderp@github.com/wvanderp/audioCrawl.git"

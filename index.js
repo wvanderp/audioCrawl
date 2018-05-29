@@ -1,135 +1,244 @@
 'use strict';
-var request = require('sync-request');
-var linkscrape = require("linkscrape");
-var fs = require("fs");
+
+const request = require('sync-request');
+const linkscrape = require('linkscrape');
+const fs = require('fs');
 const execSync = require('child_process').execSync;
-var md5 = require('md5');
+const md5 = require('md5');
+const urlParse = require('url');
 
-// ==========================================================
+// --------------------------------------------------------------------------
 
-var apiKey = "RPP8Za7Vnd";
-var apiBaseUrl = "http://api.acoustid.org/v2/lookup";
-var apiBaseParam = "?client="+apiKey+"&format=json&meta=recordingids";
+const acoustidKey = 'RPP8Za7Vnd';
+const acoustidUrl = 'http://api.acoustid.org/v2/lookup';
+const acoustidParam = '?client=' + acoustidKey + '&format=json&meta=recordingids';
 
-//var ownDomain = "http://cwms.cc/audioCrawl/api/";
-var ownDomain = "http://localhost/audioCrawl/api/";
+//const ownDomain = "http://cwms.cc/audioCrawl/api/";
+const ownDomain = 'http://localhost/audioCrawl/api/';
 
-//var ownApiUrl = ownDomain + "add.php";
-var ownApiUrl = ownDomain + "add.php";
+const addMatchApi = ownDomain + 'addMatch.php';
+const addUrlApi = ownDomain + 'addUrl.php';
+const getTaskApi = ownDomain + 'getTask.php';
+const markDoneApi = ownDomain + 'markDone.php';
+const noMatchApi = ownDomain + 'noMatch.php';
 
-var ignoredExt = ["jpeg","jpg", "gif", "pdf", "png", "mp4", "avi", "flv", "txt", "doc", "docx", "iso", "zip", "exe", "rtf", "cab", "bmp"];
+
+const includeExt = ['mp3', 'htm', 'html', 'php', 'asp', 'jsp', 'mhtml', 'shtml', 'aspx', 'ashx', 'cgi', 'cshtml', 'jspx', 'phtml', 'xhtml', 'html5'];
+//const ignoredExt = ["jpeg", "css", "deb", "sig", "mov", "rss", "vcf", "gpg", "JPG", "m4a", "rpm", "xml", "jpg", "gif", "pdf", "png", "mp4", "uts", "atom", "wmv", "avi", "wma", "flac", "db", "tar", "gz", "bz2", "ini", "flv", "txt", "doc", "docx", "iso", "zip", "exe", "rtf", "cab", "bmp"];
 
 start();
 
+// --------------------------------------------------------------------------
+
 function start() {
-    console.log("start crawling");
-    while(true){
-        var taskurl =
-        crawl(queue[0]);
-    }
+  while (true) {
+    const url = getTaskApiCall();
+
+    parseUrl(url);
+    markDoneApiCall(url);
+  }
 }
 
-function crawl(url) {
-    console.log("requesting: "+url);
-    var res = request('GET', url);
-    var body = res.getBody();
+function getPage(url) {
+  console.log('downloading: ' + url);
+  const res = request('GET', url);
+  if (res.statusCode !== 200) {
+    throw 'error received while fetching page: ' + res.statusCode;
+  }
 
-    done.push(url);
-    parse(body, url)
-
-}
-
-
-function parse(body, url) {
-    linkscrape(url, body, function(links, $) {
-        for(var i in links){
-            var link = links[i].link;
-            if (link == null){
-                continue;
-            }
-            parseUrl(link)
-        }
-    });
+  return res.getBody().toString('utf-8');
 }
 
 function parseUrl(url) {
-    var mp3Regex = /.+?\.mp3$/gim;
-    if(mp3Regex.test(url)){
-        // console.log("it is a mp3");
-        getSongs(url);
-    }else{
-        // console.log("it is a normal url");
-        for(var i in ignoredExt){
-            var ext = ignoredExt[i];
-            var extRegex =  new RegExp("/.+?\."+ext+"$");
-            if(extRegex.test(url)){
-                console.log("it is an unwanted file extention");
-                return
-            }
+  const mp3Regex = /.+?\.mp3$/gim;
+  if (mp3Regex.test(url)) {
+    // console.log("it is a mp3");
+    getSongs(url);
+  } else {
+    try {
+      const page = getPage(url);
+      linkscrape(url, page, function (links, $) {
+        for (const i in links) {
+          const link = links[i].link;
+          if (link === null) {
+            continue;
+          }
+          addUrl(link);
         }
-        addUrlToQueue(url);
+      });
+    } catch (e) {
+      console.log(e);
+      markDoneApiCall(url);
     }
+  }
 }
 
-function addUrlToQueue(url) {
-    var urlApi = ownDomain + "url.php";
-    var obj = JSON.stringify([url]);
-    var requestUrl = urlApi + "?urls=" + obj;
 
-    console.log(requestUrl);
+function addUrl(url) {
+  // console.log("it is a normal url");
+  const path = urlParse.parse(url).pathname;
+  let isGood = false;
+  for (const i in includeExt) {
+    const ext = includeExt[i];
+    const extRegex = new RegExp('/.+?\.' + ext + '$');
+    if (extRegex.test(url)) {
+      isGood = true;
+      //console.log("found good extention: "+ ext);
+    }
+  }
 
-    var res = request('GET', requestUrl);
+  if (path === null) {
+    isGood = true;
+    //console.log("is root: "+ url);
+  }
+
+  if (!isGood && path.substr(-1) === '/') {
+    isGood = true;
+    //console.log("ended on /");
+  }
+
+  if (!isGood && path.indexOf('.') === -1) {
+    isGood = true;
+    //console.log("no points in the path");
+  }
+
+  if (path !== null && path.indexOf('mailto:') === -1) {
+    isGood = false;
+    //console.log("mail to found");
+  }
+
+  if (isGood) {
+    console.log('adding url to db');
+    addUrlApiCall('{"urls":["' + url + '"]}');
+  } else {
+    //console.log("ended on : " + path.substr(-4))
+  }
 }
 
 function getSongs(url) {
-    console.log("downloading mp3");
-    var res = request('GET', url);
-    var song = res.getBody();
-    // console.log(song);
-    fs.writeFileSync("test.mp3", song);
+  console.log('downloading mp3: ' + url);
+  const res = request('GET', url);
+  if (res.statusCode !== 200) {
+    console.log('error received while fetching mp3: ' + res.statusCode);
+    return;
+  }
 
-    console.log("calculating fingerprint");
-    var result = execSync("fpcalc test.mp3");
-    var string = result.toString('utf-8');
-    var parts = string.split("\n");
+  const song = res.getBody();
 
-    var duration = parts[1];
-    var fingerprint = parts[2];
+  fs.writeFileSync('test.mp3', song);
 
-    duration = duration.replace("DURATION=", "");
-    fingerprint = fingerprint.replace("FINGERPRINT=", "");
+  console.log('calculating fingerprint');
+  let result = '';
+  try {
+    result = execSync('fpcalc test.mp3');
+  } catch (e) {
+    //console.log(e);
+    markDoneApiCall(url);
+    return;
+  }
 
-    var hash = md5(song);
+  const string = result.toString('utf-8');
+  const parts = string.split('\n');
 
-    callApi(duration, fingerprint, hash, url);
+  const duration = parts[1].replace('DURATION=', '');
+  const fingerprint = parts[2].replace('FINGERPRINT=', '');
+
+
+  const hash = md5(song);
+
+  findSong(duration, fingerprint, hash, url);
 }
 
-function callApi(duration, fingerprint, hash, url) {
-    var fullUrl = apiBaseUrl+apiBaseParam+"&duration="+duration+"&fingerprint="+fingerprint;
+function findSong(duration, fingerprint, hash, url) {
+  const recordIds = acoustidApiCall(duration, fingerprint);
 
-    var res = request('GET', fullUrl);
-    var resp =  res.getBody();
-    var json = JSON.parse(resp.toString('utf-8'));
+  if (recordIds.length === 0) {
+    console.log('no matches found');
+    noMatchApiCall(url);
+    return;
+  }
 
-    // console.log(resp.toString('utf-8'));
-    var recordId = json.results[0].recordings;
+  console.log('adding ' + recordIds.length + ' matches to the db');
 
-    //console.log(recordId);
+  for (const i in recordIds) {
+    const mbid = recordIds[i].id;
 
-    for(var i in recordId){
-        var id = recordId[i].id;
-
-        saveToDb(id, hash, url);
-
-    }
+    addMatchApiCall(url, mbid, hash);
+  }
 }
 
-function saveToDb(recordId, hash, url){
-    //console.log(recordId, hash, url);
-    var apiUrl = ownApiUrl+"?url="+url+"&mbid="+recordId+"&hash="+hash;
+// --------------------------------------------------------------------------
+// api calls
 
-    //console.log(apiUrl);
+function addMatchApiCall(urls, mbid, hash) {
+  const url = addMatchApi + '?url=' + urls + '&mbid=' + mbid + '&hash=' + hash;
 
-    var res = request('GET', apiUrl);
-    console.log(res.getBody('utf-8'))
+  const res = request('GET', url);
+  if (res.statusCode !== 200) {
+    throw 'error received from own server: ' + res.statusCode;
+  }
+}
+
+function addUrlApiCall(urls) {
+  const url = addUrlApi + '?urls=' + urls;
+
+  const res = request('GET', url);
+  if (res.statusCode !== 200) {
+    throw 'error received from own server: ' + res.statusCode;
+  }
+  //console.log(res.getBody().toString("utf-8"));
+}
+
+function getTaskApiCall() {
+  const res = request('GET', getTaskApi);
+  if (res.statusCode !== 200) {
+    throw 'error received from own server: ' + res.statusCode;
+  }
+
+  const body = res.getBody().toString('utf-8');
+
+  return JSON.parse(body).url;
+}
+
+function markDoneApiCall(urls) {
+  const url = markDoneApi + '?url=' + urls;
+
+  const res = request('GET', url);
+  if (res.statusCode !== 200) {
+    throw 'error received from own server: ' + res.statusCode;
+  }
+}
+
+function noMatchApiCall(urls) {
+  const url = noMatchApi + '?url=' + urls;
+
+  const res = request('GET', url);
+  if (res.statusCode !== 200) {
+    throw 'error received from own server: ' + res.statusCode;
+  }
+}
+
+function acoustidApiCall(duration, fingerprint) {
+  const fullUrl = acoustidUrl + acoustidParam + '&duration=' + duration + '&fingerprint=' + fingerprint;
+
+  const res = request('GET', fullUrl);
+
+  if (res.statusCode !== 200) {
+    throw 'error received from acoustid server: ' + res.statusCode;
+  }
+
+  const resp = res.getBody();
+  const json = JSON.parse(resp.toString('utf-8'));
+
+  console.log(json);
+
+  if (json.results.length === 0) {
+    return [];
+  }
+
+  if (json.results.length === 1) {
+    return json.results;
+  }
+
+  return json.results[0].recordings;
 }

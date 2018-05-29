@@ -1,0 +1,22 @@
+{
+  "parser": "babel-eslint",
+  "root": true,
+  "env": {
+    "browser": true,
+    "node": true,
+    "es6": true,
+    "mocha": true
+  },
+  "globals": {
+    "wrapStore": true
+  },
+  "extends": [
+    "eslint:recommended"
+  ],
+  "rules": {
+    "eol-last": ["error", "always"],
+    "no-var": "error",
+    "semi": ["error", "always"],
+    "no-console":"off"
+  }
+}
